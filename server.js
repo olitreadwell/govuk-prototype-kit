@@ -25,6 +25,7 @@ const sessionUtils = require('./lib/session.js')
 const plugins = require('./lib/plugins/plugins.js')
 const { pluginVersionSatisfies } = require('./lib/plugins/packages.js')
 const routesApi = require('./lib/routes/api.js')
+const { nunjucksManagementEnv } = require('./lib/manage-prototype-handlers.js')
 
 const app = express()
 routesApi.setApp(app)
@@ -206,15 +207,19 @@ app.use((err, req, res, next) => {
     case 404: {
       const path = req.path
       res.status(err.status)
-      res.render('views/error-handling/page-not-found', {
+      res.send(nunjucksManagementEnv.render('views/error-handling/page-not-found', {
+        ...req.app.locals,
         path
-      })
+      }))
       break
     }
     default: {
       res.status(500)
       console.error(err.message)
-      res.render('views/error-handling/server-error', getErrorModel(err))
+      res.send(nunjucksManagementEnv.render('views/error-handling/server-error', {
+        ...req.app.locals,
+        ...getErrorModel(err)
+      }))
       break
     }
   }
