@@ -28,7 +28,7 @@
 
 ## Gap ledger (dedupe — READ FIRST, never re-pick)
 - 2026-08-26 issue #2521 — pr-opened — fork PR #1 renders 404/500 via `nunjucksManagementEnv`; do not re-attempt.
-- 2026-09-30 self-found dead links (GDS Way + Design System community backlog) — pr-opened — see mined gaps below.
+- 2026-09-30 self-found dead links (GDS Way + Design System community backlog) — pr-opened — fork PR #24 (`fix-dead-doc-links`, base fork `main`, non-draft); 3 files +3/-3; lint+unit green locally; fork CI green except Dependency Review (fork artifact: dependency graph disabled on forks). Do not re-attempt.
 
 ## Mined gaps (discovered, not yet attempted)
-- 2026-09-30 docs dead links — `CONTRIBUTING.md` and `.github/ISSUE_TEMPLATE/tech-debt.yaml` point at `gds-way.cloudapps.digital` (NXDOMAIN, 000); `.github/ISSUE_TEMPLATE/feature-request.md` points at `design-system.service.gov.uk/community/backlog/` (410 Gone). Replacements verified live (gds-way.digital.cabinet-office.gov.uk pages return 200 with the same anchors; the live community backlog is github.com/alphagov/govuk-design-system-backlog/issues). Dedupe: no upstream issue/PR covers them. — status: attempted
+- 2026-09-30 docs dead links — `CONTRIBUTING.md` and `.github/ISSUE_TEMPLATE/tech-debt.yaml` point at `gds-way.cloudapps.digital` (NXDOMAIN, 000); `.github/ISSUE_TEMPLATE/feature-request.md` points at `design-system.service.gov.uk/community/backlog/` (410 Gone). Replacements verified live (gds-way.digital.cabinet-office.gov.uk pages return 200 with the same anchors; the live community backlog is github.com/alphagov/govuk-design-system-backlog/issues). Dedupe: no upstream issue/PR covers them. — status: pr-opened (fork PR #24)
