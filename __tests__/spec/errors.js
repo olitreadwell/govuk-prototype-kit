@@ -18,7 +18,7 @@ let kitRoutesApi
 
 const getPageTitle = html => {
   const $ = cheerio.load(html)
-  return $('title').text().trim()
+  return $('title').first().text().trim()
 }
 const getH1 = html => {
   const $ = cheerio.load(html)
@@ -128,6 +128,18 @@ describe('error handling', () => {
     expect(getPageTitle(response.text)).toEqual('Page not found – GOV.UK Prototype Kit – GOV.UK Prototype Kit')
     expect(getH1(response.text)).toEqual('Page not found')
     expect(getFirstParagraph(response.text)).toMatch(/^There is no page at/)
+  })
+
+  it('renders the not found page with the management layout', async () => {
+    const app = require('../../server.js')
+    const response = await request(app).get('/this-does-not-exist')
+
+    // The not found page uses the same layout as the management pages, so it
+    // should include the GOV.UK header and the manage-prototype stylesheet.
+    expect(response.text).toContain('class="govuk-header"')
+    expect(response.text).toContain('/public/stylesheets/manage-prototype.css')
+
+    app.close()
   })
 
   it('non-fatal errors are not shown in the browser', async () => {
