@@ -18,8 +18,6 @@ const path = require('path')
 
 // npm dependencies
 const waitOn = require('wait-on')
-const extract = require('extract-zip')
-const https = require('https')
 
 // local dependencies
 const { starterDir } = require('../../lib/utils/paths')
@@ -39,46 +37,28 @@ const createFolderForFile = async (filepath) => {
   }
 }
 
-const validateExtractedVersion = async fullFilename => {
-  // Retrieve the name and version from the package.json from the extracted zip file
-  const extractFolder = path.resolve(fullFilename.substring(0, fullFilename.lastIndexOf('.zip')))
-  log(`validating extract => ${extractFolder}`)
-  const data = fs.readFileSync(path.join(extractFolder, 'package.json'))
-  const { name, version } = JSON.parse(data)
-  // Retrieve the directory name of the extracted files
-  const separator = (extractFolder.indexOf('/') > -1) ? '/' : '\\'
-  const dirname = extractFolder.substring(extractFolder.lastIndexOf(separator) + 1)
-  // Make sure they match
-  if (`${name}-${version}` !== dirname) {
-    throw new Error(`Extracted folder ${extractFolder} contains wrong version in package.json >> ${name}-${version}`)
-  }
-}
-
-const downloadsFolder = path.resolve('cypress', 'downloads')
-
 module.exports = function setupNodeEvents (on, config) {
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
 
-  config.env.password = process.env.PASSWORD
-  config.env.additionalPasswords = (process.env.PASSWORD_KEYS || '')
+  config.expose.password = process.env.PASSWORD
+  config.expose.additionalPasswords = (process.env.PASSWORD_KEYS || '')
     .split(',')
     .map(passwordKey => process.env[passwordKey.trim()])
     .filter(password => !!password)
-  config.env.projectFolder = path.resolve(process.env.KIT_TEST_DIR || process.cwd())
-  config.env.tempFolder = path.join(__dirname, '..', 'temp')
-  config.env.skipPluginActionInterimStep = process.env.SKIP_PLUGIN_ACTION_INTERIM_STEP
+  config.expose.projectFolder = path.resolve(process.env.KIT_TEST_DIR || process.cwd())
+  config.expose.tempFolder = path.join(__dirname, '..', 'temp')
 
-  const packagePath = path.join(config.env.projectFolder, 'package.json')
+  const packagePath = path.join(config.expose.projectFolder, 'package.json')
   const packageContent = fs.readFileSync(packagePath, 'utf8')
   const packageObject = JSON.parse(packageContent)
   const dependencies = packageObject.dependencies || {}
 
   if ('govuk-prototype-kit' in dependencies) {
-    config.env.packageFolder = path.join(config.env.projectFolder, 'node_modules', 'govuk-prototype-kit')
+    config.expose.packageFolder = path.join(config.expose.projectFolder, 'node_modules', 'govuk-prototype-kit')
   }
 
-  const waitUntilAppRestarts = (timeout = 20000) => waitOn({
+  const waitUntilAppRestarts = (timeout = 60000) => waitOn({
     delay: 3000,
     resources: [config.baseUrl],
     timeout
@@ -137,49 +117,7 @@ module.exports = function setupNodeEvents (on, config) {
     .catch((err) => err.code !== 'ENOENT' ? err : null
     )
 
-  const deleteFolder = (folder, timeout = 0) => fsp.rmdir(folder, { recursive: true })
-    .then(() => sleep(timeout))
-    .catch((err) => err.code !== 'ENOENT' ? err : null
-    )
-
-  const download = async (url, zipFile) => {
-    return new Promise((resolve, reject) => {
-      log(`downloading => ${url}`)
-      const request = https.get(url, response => {
-        if (response.statusCode === 200) {
-          const filename = path.join(downloadsFolder, zipFile)
-          log(`writing => ${filename}`)
-          const file = fs.createWriteStream(filename, { flags: 'wx' })
-          file.on('finish', () => resolve(filename))
-          file.on('error', (err) => {
-            file.close()
-            fs.unlink(downloadsFolder, () => {
-              log(`writing => ${filename} => ${err.message}`)
-              reject(err.message)
-            }) // Delete temp file
-          })
-          response.pipe(file)
-        } else if (response.statusCode === 302 || response.statusCode === 301) {
-          // Recursively follow redirects, only a 200 will resolve.
-          const { location } = response.headers
-          if (!zipFile && location.endsWith('.zip')) {
-            const uri = new URL(location)
-            zipFile = uri.pathname.split('/').pop()
-          }
-          return download(location, zipFile).then((filename) =>
-            resolve(filename))
-        } else {
-          reject(new Error(`Server responded with ${response.statusCode}: ${response.statusMessage}`))
-        }
-      })
-
-      request.on('error', err => {
-        reject(err.message)
-      })
-    })
-  }
-
-  const getPathFromProjectRoot = (...all) => path.join(...[config.env.projectFolder].concat(all))
+  const getPathFromProjectRoot = (...all) => path.join(...[config.expose.projectFolder].concat(all))
   const pathToPackageFile = packageName => getPathFromProjectRoot('node_modules', packageName, 'package.json')
 
   const pluginInstalled = async (plugin, version, timeout) => {
@@ -219,8 +157,8 @@ module.exports = function setupNodeEvents (on, config) {
   }
 
   const backupStarterFiles = () => {
-    const projectDir = path.join(config.env.projectFolder)
-    const backupDir = path.join(config.env.tempFolder, 'backupStarterFiles')
+    const projectDir = path.join(config.expose.projectFolder)
+    const backupDir = path.join(config.expose.tempFolder, 'backupStarterFiles')
 
     // Define the filter function
     const filter = (dir) => !dir.includes('node_modules') && !dir.includes('package-lock.json')
@@ -233,15 +171,15 @@ module.exports = function setupNodeEvents (on, config) {
 
   const restoreStarterFiles = async (remainingRetries = 4) => {
     try {
-      const tmpDir = path.join(config.env.projectFolder, '.tmp')
-      const appDir = path.join(config.env.projectFolder, 'app')
+      const tmpDir = path.join(config.expose.projectFolder, '.tmp')
+      const appDir = path.join(config.expose.projectFolder, 'app')
       const appViewsDir = path.join(appDir, 'views')
       const appDataDir = path.join(appDir, 'data')
       const appAssetsDir = path.join(appDir, 'assets')
       const appSassDir = path.join(appAssetsDir, 'sass')
       const appJSDir = path.join(appAssetsDir, 'javascripts')
-      const backupDir = path.join(config.env.tempFolder, 'backupStarterFiles')
-      const projectDir = path.join(config.env.projectFolder)
+      const backupDir = path.join(config.expose.tempFolder, 'backupStarterFiles')
+      const projectDir = path.join(config.expose.projectFolder)
 
       const originalPackageJsonHash = await getFileHash(path.join(backupDir, 'package.json'))
       const currentPackageJsonHash = await getFileHash(path.join(projectDir, 'package.json'))
@@ -260,7 +198,7 @@ module.exports = function setupNodeEvents (on, config) {
       if (originalPackageJsonHash !== currentPackageJsonHash) {
         log('Restoring to starter plugins')
         const command = 'npm prune && npm install'
-        await exec(command, { cwd: config.env.projectFolder })
+        await exec(command, { cwd: config.expose.projectFolder })
         await sleep(1000)
         // To allow for possible SASS recompilation, wait again
         await waitUntilAppRestarts()
@@ -293,7 +231,7 @@ module.exports = function setupNodeEvents (on, config) {
 
     copyFromStarterFiles: ({ starterFilename = undefined, filename }) => {
       const src = path.join(starterDir, starterFilename || filename)
-      const dest = path.join(config.env.projectFolder, filename)
+      const dest = path.join(config.expose.projectFolder, filename)
       return createFolderForFile(dest)
         .then(() => fsp.copyFile(src, dest))
         // The sleep of 2 seconds allows for the file to be copied completely to prevent
@@ -345,24 +283,9 @@ module.exports = function setupNodeEvents (on, config) {
       .then((text) => fsp.writeFile(filename, text.toString()))
       .then(makeSureCypressCanInterpretTheResult),
 
-    download: async ({ filename }) => {
-      log(`deleting folder => ${downloadsFolder}`)
-      return deleteFolder(downloadsFolder, 2000)
-        .then(() => fsp.mkdir(downloadsFolder, { recursive: true }))
-        .then(() => download(filename))
-        .then((fullFilename) => {
-          log(`extracting => ${fullFilename}`)
-          return extract(fullFilename, { dir: downloadsFolder })
-            .then(() => {
-              return validateExtractedVersion(fullFilename)
-            })
-        })
-        .then(makeSureCypressCanInterpretTheResult)
-    },
-
     addToConfigJson: (additionalConfig) => {
-      log(`Adding config JSON => ${downloadsFolder}`)
-      const appConfigPath = path.join(config.env.projectFolder, 'app', 'config.json')
+      const appConfigPath = path.join(config.expose.projectFolder, 'app', 'config.json')
+      log(`Adding config JSON => ${appConfigPath}`)
       return fse.readJson(appConfigPath)
         .then(existingConfig => Object.assign({}, existingConfig, additionalConfig))
         .then(newConfig => fse.writeJson(appConfigPath, newConfig))
@@ -378,6 +301,10 @@ module.exports = function setupNodeEvents (on, config) {
     log: (message) => {
       log(message)
       return makeSureCypressCanInterpretTheResult()
+    },
+
+    exec: (command) => {
+      return exec(command, { cwd: config.expose.projectFolder })
     }
   })
 

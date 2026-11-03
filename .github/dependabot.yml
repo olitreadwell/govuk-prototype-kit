@@ -1,0 +1,52 @@
+version: 2
+
+updates:
+  # Update npm packages
+  - package-ecosystem: npm
+    directory: /
+    open-pull-requests-limit: 15
+
+    groups:
+      express:
+        patterns:
+          - 'express'
+          - 'express-*'
+          - 'cookie-parser'
+
+      jest:
+        patterns:
+          - 'jest'
+          - 'jest-*'
+
+      lint:
+        patterns:
+          - 'standard'
+          - 'eslint-*'
+
+    ignore:
+      # nunjucks and browser-sync still depend on chokidar 3.x
+      # and cannot be updated with overrides.
+      - dependency-name: 'chokidar'
+        update-types: ['version-update:semver-major']
+
+    schedule:
+      interval: monthly
+      time: '10:30'
+      timezone: 'Europe/London'
+
+    cooldown:
+      default-days: 7
+
+    versioning-strategy: increase
+
+  # Update GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+
+    schedule:
+      interval: monthly
+      time: '10:30'
+      timezone: 'Europe/London'
+
+    cooldown:
+      default-days: 7

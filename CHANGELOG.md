@@ -2,10 +2,122 @@
 
 ## Unreleased
 
+### Dependency updates
+
+- [2757: Bumped body-parser, follow-redirects, qs and undici](https://github.com/alphagov/govuk-prototype-kit/pull/2757)
+- [2760: Bump govuk-frontend from 6.5.1 to 6.6.0](https://github.com/alphagov/govuk-prototype-kit/pull/2760)
+- [2763: Bump sass from 1.105.1 to 1.106.1](https://github.com/alphagov/govuk-prototype-kit/pull/2763)
+
+
+## v14.0.2 (Fix release)
+
+You can find [how to update to the latest version](https://prototype-kit.service.gov.uk/update-to-latest-version/) in our documentation.
+
+
+### Fixes
+
+- [2755: Fix nested keys parsing in query string](https://github.com/alphagov/govuk-prototype-kit/pull/2755) - thanks to @adamsilver for reporting the issues and the NHS digital service manual team for the solution.
+
+## v14.0.1 (Fix release)
+
+You can find [how to update to the latest version](https://prototype-kit.service.gov.uk/update-to-latest-version/) in our documentation.
+
+
+### Fixes
+
+- [#2745: Remove import of error pages CSS from prototype stylesheet](https://github.com/alphagov/govuk-prototype-kit/pull/2745) - thanks to @markhobson for reporting the issue. 
+
+## v14.0.0 (Breaking release)
+
+You can find [how to update to the latest version](https://prototype-kit.service.gov.uk/update-to-latest-version/) in our documentation.
+
+
+### Breaking changes
+
+#### Update Node.js
+
+You can no longer run the GOV.UK Prototype Kit on earlier versions of Node.js than version 22. These versions are no longer maintained, which means they no longer get security fixes.
+
+If you currently use an earlier version of Node.js, you'll need to update it before you update your prototype. We recommend you update to the [latest LTS (long-term support) version of Node.js](https://nodejs.org/en/about/previous-releases).
+
+See our guidance on [getting started with the Prototype Kit](https://prototype-kit.service.gov.uk/install/getting-started/) for installation guides for your operating system.
+
+- [#2578: Bump supported Node version](https://github.com/alphagov/govuk-prototype-kit/pull/2578)
+
+#### Make sure your custom routes still work
+
+We've updated Express, the web server used by the Prototype Kit, to version 5.
+
+If your prototype uses [custom routes](https://prototype-kit.service.gov.uk/docs/create-routes), see the guidance on [upgrading to Express v5](https://expressjs.com/en/guide/migrating-5/) to check whether you need to make any changes to your routes’ custom code.
+
+- [#2577: Update Express to version 5](https://github.com/alphagov/govuk-prototype-kit/pull/2577)
+
+#### Make sure any pagination or task lists look correct
+
+If your prototype uses pagination or a task list, check that these look correct after updating.
+
+If not, your prototype may be using outdated CSS we’ve removed from the kit. Update your prototype to use the
+[Pagination](https://design-system.service.gov.uk/components/pagination/) and [Task list](https://design-system.service.gov.uk/components/task-list/) components from the GOV.UK Design System.
+
+- [#2586: Remove legacy pattern stylesheets](https://github.com/alphagov/govuk-prototype-kit/pull/2586)
+
+#### Make sure any start pages or mainstream guides look correct
+
+If your prototype includes pages that use the 'Start' or 'Mainstream guide' format, check that these look correct after updating.
+
+If not, install the 'Common Templates' plugin. You can do this by installing it from your [prototype's management page](http://localhost:3000/manage-prototype/plugins).
+
+- [#2586: Remove legacy pattern stylesheets](https://github.com/alphagov/govuk-prototype-kit/pull/2586)
+
+### New features
+
+#### We've changed how the kit's dependencies are installed
+
+We now use [npm's `bundleDependencies` option](https://docs.npmjs.com/cli/v8/configuring-npm/package-json#bundledependencies) to avoid unknowingly installing later versions of the Prototype Kit dependencies when installing your prototype.
+
+This helps protect against supply chain attacks, where someone adds malicious code to a later version of a package that the Kit depends on, which could then be installed on your machine.
+
+- [#2584: Bundle dependencies instead of shrinkwrapping](https://github.com/alphagov/govuk-prototype-kit/pull/2584)
+
+#### MOJ Frontend is available as a plugin
+
+You can now install [MOJ Frontend](https://github.com/ministryofjustice/moj-frontend) from your [prototype's management page](http://localhost:3000/manage-prototype/plugins) in your browser. This lets you use MOJ Design System components in your prototype.
+
+- [#2478: Add MOJ Frontend to known-plugins.json](https://github.com/alphagov/govuk-prototype-kit/pull/2478)
+
+#### Use `pkg:` URLs in Sass
+
+You can now use [`pkg:` URLs](https://sass-lang.com/blog/announcing-pkg-importers/) in your Prototype's Sass code or include Sass libraries that use `pkg:` URLs.
+
+- [#2669: Add support for `pkg:` URLs in Sass](https://github.com/alphagov/govuk-prototype-kit/pull/2669)
+
+### Fixes
+
+- [#2678: Remove deprecated @govuk-prototype-kit/task-list known plugin](https://github.com/alphagov/govuk-prototype-kit/pull/2678)
+- [#2683: Remove unnecessary rebrand configuration from new Prototypes](https://github.com/alphagov/govuk-prototype-kit/pull/2683)
+
+### Dependency updates
+
+- [#2593: Replace dotenv with Node's built-in .env support](https://github.com/alphagov/govuk-prototype-kit/pull/2593)
+- [#2601: Bump tar-stream from 3.1.7 to 3.2.1](https://github.com/alphagov/govuk-prototype-kit/pull/2601)
+- [#2602: Bump semver from 7.7.2 to 7.8.5](https://github.com/alphagov/govuk-prototype-kit/pull/2602)
+- [#2605: Bump csrf-csrf from 2.3.0 to 4.0.3](https://github.com/alphagov/govuk-prototype-kit/pull/2605)
+- [#2606: Bump nodemon from 3.0.3 to 3.1.14](https://github.com/alphagov/govuk-prototype-kit/pull/2606)
+- [#2612: Bump express-session from 1.18.2 to 1.19.0](https://github.com/alphagov/govuk-prototype-kit/pull/2612)
+- [#2613: Bump sass from 1.89.2 to 1.103.1](https://github.com/alphagov/govuk-prototype-kit/pull/2613)
+- [#2614: Bump fs-extra from 11.2.0 to 11.4.0](https://github.com/alphagov/govuk-prototype-kit/pull/2614)
+- [#2637: Remove ansi-colors](https://github.com/alphagov/govuk-prototype-kit/pull/2637)
+- [#2682: Update GOV.UK Frontend to version 6 in the management UI](https://github.com/alphagov/govuk-prototype-kit/pull/2682)
+
+## 13.20.4
+
 ### Fixes
 
 - [#2563: Bump Immutable to 3.8.4 & 5.1.9](https://github.com/alphagov/govuk-prototype-kit/pull/2563)
 - [#2564: Remove `marked` from dependencies](https://github.com/alphagov/govuk-prototype-kit/pull/2564)
+- [#2564: Remove dependency on `del`](https://github.com/alphagov/govuk-prototype-kit/pull/2570)
+- [#2574: Use json and urlencoded middlewares from Express](https://github.com/alphagov/govuk-prototype-kit/pull/2574)
+- [#2569: Replace @inquirer/confirm with Node's built in readline](https://github.com/alphagov/govuk-prototype-kit/pull/2569)
 
 ## 13.20.3
 

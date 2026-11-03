@@ -4,16 +4,21 @@ const path = require('path')
 const url = require('url')
 
 // npm dependencies
-const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
-const dotenv = require('dotenv')
 const express = require('express')
 const { expressNunjucks, getNunjucksAppEnv, stopWatchingNunjucks } = require('./lib/nunjucks/nunjucksConfiguration')
 
 // We want users to be able to keep api keys, config variables and other
-// envvars in a `.env` file, run dotenv before other code to make sure those
-// variables are available
-dotenv.config()
+// envvars in a `.env` file, load it before other code to make sure those
+// variables are available. `loadEnvFile` fails if it can't find a .env file
+// so we want to handle that case (since users don't HAVE to have one).
+try {
+  process.loadEnvFile()
+} catch (err) {
+  if (err.code !== 'ENOENT') {
+    throw err
+  }
+}
 
 // Local dependencies
 const { projectDir, packageDir, appViewsDir, finalBackupNunjucksDir } = require('./lib/utils/paths')
@@ -74,7 +79,7 @@ app.locals.govukFrontendInternal = govukFrontendInternal
 app.locals.pluginVersionSatisfies = pluginVersionSatisfies
 
 // keep extensionConfig around for backwards compatibility
-// TODO: remove in v14
+// TODO: remove in a breaking release
 app.locals.extensionConfig = app.locals.pluginConfig
 
 // Support session data storage
@@ -120,9 +125,12 @@ app.set('view engine', 'njk')
 app.use('/public', express.static(path.join(projectDir, '.tmp', 'public')))
 app.use('/public', express.static(path.join(projectDir, 'app', 'assets')))
 
+// Parse nested objects in query strings
+app.set('query parser', 'extended')
+
 // Support for parsing data in POSTs
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({
+app.use(express.json())
+app.use(express.urlencoded({
   extended: true
 }))
 
